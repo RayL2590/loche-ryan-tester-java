@@ -62,4 +62,17 @@ public class ParkingDataBaseIT {
         //TODO: check that the fare generated and out time are populated correctly in the database
     }
 
+    @Test
+    public void testParkingLotExitRecurringUser(){
+        // Préparer un utilisateur récurrent (au moins 2 tickets)
+        testParkingACar(); // Premier ticket
+        // Sortie et ré-entrée
+        ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
+        parkingService.processExitingVehicle();
+        // Second ticket qui devrait avoir la réduction
+        testParkingACar();
+        parkingService.processExitingVehicle();
+        // Vérifier dans la base que le prix du second ticket inclut la réduction
+    }
+
 }
