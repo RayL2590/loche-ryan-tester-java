@@ -4,6 +4,8 @@
 *.war
 *.ear
 *.logs
+*.txt
+*.py
 .idea/
 *.iml
 .classpath
