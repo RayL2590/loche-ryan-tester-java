@@ -21,6 +21,12 @@ public class FareCalculatorService {
         // Puis encore par 60 pour passer aux heures
         double duration = (outTime - inTime) / (1000.0 * 60.0 * 60.0);
 
+        // Si la durée est inférieure à 30 minutes (0.5 heure), pas de frais
+        if (duration <= 0.5) {
+            ticket.setPrice(0);
+            return;
+        }
+
         // Calcul du prix en fonction du type de véhicule
         switch (ticket.getParkingSpot().getParkingType()) {
             case CAR: {
