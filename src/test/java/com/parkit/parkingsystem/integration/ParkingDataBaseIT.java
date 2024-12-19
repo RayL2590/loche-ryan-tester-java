@@ -13,21 +13,22 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import static org.mockito.Mockito.when;
+
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 public class ParkingDataBaseIT {
 
-    private static DataBaseTestConfig dataBaseTestConfig = new DataBaseTestConfig();
+    private static final DataBaseTestConfig dataBaseTestConfig = new DataBaseTestConfig();
     private static ParkingSpotDAO parkingSpotDAO;
     private static TicketDAO ticketDAO;
     private static DataBasePrepareService dataBasePrepareService;
 
     @Mock
-    private static InputReaderUtil inputReaderUtil;
+    private InputReaderUtil inputReaderUtil;
 
     @BeforeAll
-    private static void setUp() throws Exception{
+    private static void setUp() {
         parkingSpotDAO = new ParkingSpotDAO();
         parkingSpotDAO.dataBaseConfig = dataBaseTestConfig;
         ticketDAO = new TicketDAO();
@@ -36,43 +37,64 @@ public class ParkingDataBaseIT {
     }
 
     @BeforeEach
-    private void setUpPerTest() throws Exception {
-        when(inputReaderUtil.readSelection()).thenReturn(1);
-        when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("ABCDEF");
+    private void setUpPerTest() {
         dataBasePrepareService.clearDataBaseEntries();
     }
 
     @AfterAll
-    private static void tearDown(){
-
+    private static void tearDown() {
     }
 
     @Test
-    public void testParkingACar(){
-        ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
-        parkingService.processIncomingVehicle();
-        //TODO: check that a ticket is actualy saved in DB and Parking table is updated with availability
+    public void testParkingACar() {
+        try {
+            when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("ABCDEF");
+            when(inputReaderUtil.readSelection()).thenReturn(1);
+            
+            ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
+            parkingService.processIncomingVehicle();
+            //TODO: check that a ticket is actualy saved in DB and Parking table is updated with availability
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to test parking a car", e);
+        }
     }
 
     @Test
-    public void testParkingLotExit(){
-        testParkingACar();
-        ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
-        parkingService.processExitingVehicle();
-        //TODO: check that the fare generated and out time are populated correctly in the database
+    public void testParkingLotExit() {
+        try {
+            testParkingACar(); // On gare d'abord une voiture
+            when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("ABCDEF");
+            
+            ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
+            parkingService.processExitingVehicle();
+            //TODO: check that the fare generated and out time are populated correctly in the database
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to test parking lot exit", e);
+        }
     }
 
     @Test
-    public void testParkingLotExitRecurringUser(){
-        // Préparer un utilisateur récurrent (au moins 2 tickets)
-        testParkingACar(); // Premier ticket
-        // Sortie et ré-entrée
-        ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
-        parkingService.processExitingVehicle();
-        // Second ticket qui devrait avoir la réduction
-        testParkingACar();
-        parkingService.processExitingVehicle();
-        // Vérifier dans la base que le prix du second ticket inclut la réduction
+    public void testParkingLotExitRecurringUser() {
+        try {
+            when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("ABCDEF");
+            when(inputReaderUtil.readSelection()).thenReturn(1);
+            
+            ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
+            
+            // Premier stationnement
+            parkingService.processIncomingVehicle();
+            parkingService.processExitingVehicle();
+            
+            // Deuxième stationnement (devrait avoir la réduction)
+            parkingService.processIncomingVehicle();
+            parkingService.processExitingVehicle();
+            
+            // TODO: Vérifier dans la base que le prix du second ticket inclut la réduction de 5%
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException("Failed to test recurring user", e);
+        }
     }
-
 }

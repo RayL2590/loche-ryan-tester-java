@@ -155,9 +155,9 @@ public class FareCalculatorServiceTest {
     @Test
     public void calculateFareCarWithDiscount(){
         Date inTime = new Date();
-        inTime.setTime( System.currentTimeMillis() - (60 * 60 * 1000)); // 1 heure de parking
+        inTime.setTime(System.currentTimeMillis() - (60 * 60 * 1000)); // 1 heure de parking
         Date outTime = new Date();
-        ParkingSpot parkingSpot = new ParkingSpot(1, ParkingType.CAR,false);
+        ParkingSpot parkingSpot = new ParkingSpot(1, ParkingType.CAR, false);
 
         ticket.setInTime(inTime);
         ticket.setOutTime(outTime);
@@ -193,5 +193,4 @@ public class FareCalculatorServiceTest {
         fareCalculatorService.calculateFare(ticket, true);
         assertEquals(0, ticket.getPrice()); // Doit être gratuit même avec réduction
     }
-
 }
