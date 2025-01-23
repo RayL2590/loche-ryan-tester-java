@@ -1,13 +1,14 @@
-/target/
 *.class
 *.jar
 *.war
 *.ear
 *.logs
-*.txt
 *.py
 .idea/
 *.iml
 .classpath
 .project
 .settings/
+/target
+*.html
+*.txt
