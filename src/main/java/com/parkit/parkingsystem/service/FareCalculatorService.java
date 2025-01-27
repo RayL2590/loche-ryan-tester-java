@@ -18,11 +18,22 @@ public class FareCalculatorService {
      *         or if the parking type is unknown
      */
     public void calculateFare(Ticket ticket, boolean discount){
-        // Validate parking duration
-        if ((ticket.getOutTime() == null) || (ticket.getOutTime().before(ticket.getInTime()))) {
-            throw new IllegalArgumentException("Out time provided is incorrect:" + ticket.getOutTime().toString());
+        if (ticket == null) {
+            throw new IllegalArgumentException("Ticket cannot be null");
         }
-    
+        if (ticket.getParkingSpot() == null) {
+            throw new IllegalArgumentException("Parking spot cannot be null");
+        }
+        if (ticket.getParkingSpot().getParkingType() == null) {
+            throw new IllegalArgumentException("Parking type cannot be null");
+        }
+        if (ticket.getOutTime() == null) {
+            throw new IllegalArgumentException("Out time provided is incorrect:null");
+        }
+        if (ticket.getInTime() == null) {
+            throw new IllegalArgumentException("In time cannot be null");
+        }
+        
         // Get entry and exit times in milliseconds
         long inTime = ticket.getInTime().getTime();
         long outTime = ticket.getOutTime().getTime();
@@ -30,6 +41,11 @@ public class FareCalculatorService {
         // Calculate duration in hours
         double duration = (outTime - inTime) / (1000.0 * 60.0 * 60.0);
     
+        // Check for negative duration (including future entry time)
+        if (duration < 0) {
+            throw new IllegalArgumentException("Duration cannot be negative: " + duration);
+        }
+        
         // Free parking for stays under 30 minutes (0.5 hours)
         if (duration <= 0.5) {
             ticket.setPrice(0);
@@ -48,7 +64,7 @@ public class FareCalculatorService {
                 break;
             }
             default:
-                throw new IllegalArgumentException("Unknown Parking Type");
+                throw new IllegalArgumentException("Unknown Parking Type: " + ticket.getParkingSpot().getParkingType());
         }
     
         // Apply 5% discount for recurring users if applicable

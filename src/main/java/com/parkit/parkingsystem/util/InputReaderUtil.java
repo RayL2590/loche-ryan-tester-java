@@ -35,5 +35,8 @@ public class InputReaderUtil {
         }
     }
 
-
+    // For testing purposes only
+    public static void resetScanner() {
+        scan = new Scanner(System.in);
+    }
 }

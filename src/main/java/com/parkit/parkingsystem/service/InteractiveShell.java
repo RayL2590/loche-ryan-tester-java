@@ -14,42 +14,29 @@ import org.apache.logging.log4j.Logger;
 public class InteractiveShell {
 
     private static final Logger logger = LogManager.getLogger("InteractiveShell");
-
-    /**
-     * Initializes and runs the main application interface.
-     * Creates necessary service instances and maintains the main application loop.
-     * Processes user input and delegates to appropriate service methods.
-     */
-    public static void loadInterface(){
+    
+    // Pour les tests
+    static void loadInterface(InputReaderUtil inputReaderUtil, ParkingSpotDAO parkingSpotDAO, 
+                            TicketDAO ticketDAO, ParkingService parkingService){
         logger.info("App initialized!!!");
         System.out.println("Welcome to Parking System!");
 
-        // Initialize system components
         boolean continueApp = true;
-        InputReaderUtil inputReaderUtil = new InputReaderUtil();
-        ParkingSpotDAO parkingSpotDAO = new ParkingSpotDAO();
-        TicketDAO ticketDAO = new TicketDAO();
-        ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
 
-        // Main application loop
         while(continueApp){
             loadMenu();
             int option = inputReaderUtil.readSelection();
             
-            // Process user selection
             switch(option){
                 case 1: {
-                    // Handle incoming vehicle
                     parkingService.processIncomingVehicle();
                     break;
                 }
                 case 2: {
-                    // Handle exiting vehicle
                     parkingService.processExitingVehicle();
                     break;
                 }
                 case 3: {
-                    // Shutdown system
                     System.out.println("Exiting from the system!");
                     continueApp = false;
                     break;
@@ -57,6 +44,19 @@ public class InteractiveShell {
                 default: System.out.println("Unsupported option. Please enter a number corresponding to the provided menu");
             }
         }
+    }
+
+    /**
+     * Initializes and runs the main application interface.
+     * Creates necessary service instances and maintains the main application loop.
+     */
+    public static void loadInterface(){
+        InputReaderUtil inputReaderUtil = new InputReaderUtil();
+        ParkingSpotDAO parkingSpotDAO = new ParkingSpotDAO();
+        TicketDAO ticketDAO = new TicketDAO();
+        ParkingService parkingService = new ParkingService(inputReaderUtil, parkingSpotDAO, ticketDAO);
+        
+        loadInterface(inputReaderUtil, parkingSpotDAO, ticketDAO, parkingService);
     }
 
     /**

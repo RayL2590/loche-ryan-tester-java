@@ -32,11 +32,11 @@ public class ParkingServiceTest {
 
     private ParkingService parkingService;
 
-    @Mock
+    @Mock(lenient = true)
     private InputReaderUtil inputReaderUtil;
-    @Mock
+    @Mock(lenient = true)
     private ParkingSpotDAO parkingSpotDAO;
-    @Mock
+    @Mock(lenient = true)
     private TicketDAO ticketDAO;
 
     /**
@@ -71,6 +71,7 @@ public class ParkingServiceTest {
         when(ticketDAO.getNbTicket(regNumber)).thenReturn(2); // Recurring user
         when(ticketDAO.updateTicket(any(Ticket.class))).thenReturn(true);
         when(parkingSpotDAO.updateParking(any(ParkingSpot.class))).thenReturn(true);
+        when(ticketDAO.saveTicket(any(Ticket.class))).thenReturn(true);
 
         // Execute the test
         parkingService.processExitingVehicle();
@@ -100,6 +101,8 @@ public class ParkingServiceTest {
         when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn(regNumber);
         when(parkingSpotDAO.getNextAvailableSlot(ParkingType.CAR)).thenReturn(1);
         when(ticketDAO.getNbTicket(regNumber)).thenReturn(2); // Recurring user
+        when(parkingSpotDAO.updateParking(any(ParkingSpot.class))).thenReturn(true);
+        when(ticketDAO.saveTicket(any(Ticket.class))).thenReturn(true);
 
         // Execute the test
         parkingService.processIncomingVehicle();
@@ -131,6 +134,8 @@ public class ParkingServiceTest {
         when(ticketDAO.getTicket(regNumber)).thenReturn(ticket);
         when(ticketDAO.getNbTicket(regNumber)).thenReturn(1);
         when(ticketDAO.updateTicket(any(Ticket.class))).thenReturn(false);
+        when(parkingSpotDAO.updateParking(any(ParkingSpot.class))).thenReturn(true);
+        when(ticketDAO.saveTicket(any(Ticket.class))).thenReturn(true);
 
         // Execute the test
         parkingService.processExitingVehicle();
@@ -149,6 +154,8 @@ public class ParkingServiceTest {
         // Configure mock behaviors
         when(inputReaderUtil.readSelection()).thenReturn(1); // CAR selection
         when(parkingSpotDAO.getNextAvailableSlot(ParkingType.CAR)).thenReturn(1);
+        when(parkingSpotDAO.updateParking(any(ParkingSpot.class))).thenReturn(true);
+        when(ticketDAO.saveTicket(any(Ticket.class))).thenReturn(true);
 
         // Execute the test
         ParkingSpot parkingSpot = parkingService.getNextParkingNumberIfAvailable();
@@ -169,6 +176,8 @@ public class ParkingServiceTest {
         // Configure mock behaviors
         when(inputReaderUtil.readSelection()).thenReturn(1); // CAR selection
         when(parkingSpotDAO.getNextAvailableSlot(ParkingType.CAR)).thenReturn(-1);
+        when(parkingSpotDAO.updateParking(any(ParkingSpot.class))).thenReturn(true);
+        when(ticketDAO.saveTicket(any(Ticket.class))).thenReturn(true);
 
         // Execute and verify
         ParkingSpot parkingSpot = parkingService.getNextParkingNumberIfAvailable();
@@ -183,10 +192,105 @@ public class ParkingServiceTest {
     public void testGetNextParkingNumberIfAvailableParkingNumberWrongArgument() {
         // Configure mock for invalid vehicle type
         when(inputReaderUtil.readSelection()).thenReturn(3); // Invalid type
+        when(parkingSpotDAO.updateParking(any(ParkingSpot.class))).thenReturn(true);
+        when(ticketDAO.saveTicket(any(Ticket.class))).thenReturn(true);
 
         // Execute and verify
         ParkingSpot parkingSpot = parkingService.getNextParkingNumberIfAvailable();
         assertNull(parkingSpot);
         verify(parkingSpotDAO, never()).getNextAvailableSlot(any(ParkingType.class));
+    }
+
+    @Test
+    public void testProcessIncomingVehicle_WhenParkingSpotIsNull() throws Exception {
+        // Configure mock behaviors pour que getNextParkingNumberIfAvailable retourne null
+        when(inputReaderUtil.readSelection()).thenReturn(1);
+        when(parkingSpotDAO.getNextAvailableSlot(ParkingType.CAR)).thenReturn(-1);
+        when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn("ABCDEF");
+        when(parkingSpotDAO.updateParking(any(ParkingSpot.class))).thenReturn(true);
+        when(ticketDAO.saveTicket(any(Ticket.class))).thenReturn(true);
+
+        // Execute the test
+        parkingService.processIncomingVehicle();
+
+        // Verify qu'on n'a pas essayé de sauvegarder de ticket
+        verify(ticketDAO, never()).saveTicket(any(Ticket.class));
+        verify(parkingSpotDAO, never()).updateParking(any(ParkingSpot.class));
+    }
+
+    @Test
+    public void testProcessIncomingVehicle_WithNewUser() throws Exception {
+        // Setup test data
+        String regNumber = "ABCDEF";
+        
+        // Configure mock behaviors
+        when(inputReaderUtil.readSelection()).thenReturn(1);
+        when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn(regNumber);
+        when(parkingSpotDAO.getNextAvailableSlot(ParkingType.CAR)).thenReturn(1);
+        when(ticketDAO.getNbTicket(regNumber)).thenReturn(0); // Nouvel utilisateur
+        when(parkingSpotDAO.updateParking(any(ParkingSpot.class))).thenReturn(true);
+        when(ticketDAO.saveTicket(any(Ticket.class))).thenReturn(true);
+
+        // Execute the test
+        parkingService.processIncomingVehicle();
+
+        // Verify all expected interactions
+        verify(parkingSpotDAO).updateParking(any(ParkingSpot.class));
+        verify(ticketDAO).saveTicket(any(Ticket.class));
+        verify(ticketDAO).getNbTicket(regNumber);
+    }
+
+    @Test
+    public void testProcessIncomingVehicle_WithBike() throws Exception {
+        // Setup test data
+        String regNumber = "ABCDEF";
+        
+        // Configure mock behaviors
+        when(inputReaderUtil.readSelection()).thenReturn(2); // BIKE selection
+        when(inputReaderUtil.readVehicleRegistrationNumber()).thenReturn(regNumber);
+        when(parkingSpotDAO.getNextAvailableSlot(ParkingType.BIKE)).thenReturn(1);
+        when(ticketDAO.getNbTicket(regNumber)).thenReturn(0);
+        when(parkingSpotDAO.updateParking(any(ParkingSpot.class))).thenReturn(true);
+        when(ticketDAO.saveTicket(any(Ticket.class))).thenReturn(true);
+
+        // Execute the test
+        parkingService.processIncomingVehicle();
+
+        // Verify all expected interactions
+        verify(parkingSpotDAO).getNextAvailableSlot(ParkingType.BIKE);
+        verify(parkingSpotDAO).updateParking(any(ParkingSpot.class));
+        verify(ticketDAO).saveTicket(any(Ticket.class));
+    }
+
+    @Test
+    public void testProcessIncomingVehicle_WithException() throws Exception {
+        // Configure mock behaviors to throw an exception
+        when(inputReaderUtil.readSelection()).thenReturn(1);
+        when(inputReaderUtil.readVehicleRegistrationNumber()).thenThrow(new Exception("Error reading vehicle registration number"));
+        when(parkingSpotDAO.getNextAvailableSlot(ParkingType.CAR)).thenReturn(1);
+        when(parkingSpotDAO.updateParking(any(ParkingSpot.class))).thenReturn(true);
+        when(ticketDAO.saveTicket(any(Ticket.class))).thenReturn(true);
+
+        // Execute the test
+        parkingService.processIncomingVehicle();
+
+        // Verify no interactions occurred after the exception
+        verify(parkingSpotDAO, never()).updateParking(any(ParkingSpot.class));
+        verify(ticketDAO, never()).saveTicket(any(Ticket.class));
+    }
+
+    @Test
+    public void testProcessExitingVehicle_WithException() throws Exception {
+        // Configure mock to throw an exception
+        when(inputReaderUtil.readVehicleRegistrationNumber()).thenThrow(new Exception("Error reading vehicle registration number"));
+        when(parkingSpotDAO.updateParking(any(ParkingSpot.class))).thenReturn(true);
+        when(ticketDAO.saveTicket(any(Ticket.class))).thenReturn(true);
+
+        // Execute the test
+        parkingService.processExitingVehicle();
+
+        // Verify no interactions occurred after the exception
+        verify(ticketDAO, never()).updateTicket(any(Ticket.class));
+        verify(parkingSpotDAO, never()).updateParking(any(ParkingSpot.class));
     }
 }
