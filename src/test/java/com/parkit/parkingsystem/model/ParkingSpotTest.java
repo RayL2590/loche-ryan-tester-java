@@ -40,18 +40,18 @@ class ParkingSpotTest {
 
     @Test
     void equals_ShouldReturnFalse_WhenNull() {
-        assertFalse(parkingSpot.equals(null));
+        assertNotEquals(null, parkingSpot);
     }
 
     @Test
     void equals_ShouldReturnFalse_WhenDifferentClass() {
-        assertFalse(parkingSpot.equals("Not a ParkingSpot"));
+        assertNotEquals("Not a ParkingSpot", parkingSpot);
     }
 
     @Test
     void equals_ShouldReturnFalse_WhenDifferentNumber() {
         ParkingSpot otherSpot = new ParkingSpot(2, ParkingType.CAR, true);
-        assertFalse(parkingSpot.equals(otherSpot));
+        assertNotEquals(parkingSpot, otherSpot);
     }
 
     @Test

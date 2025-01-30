@@ -181,7 +181,7 @@ public class ParkingDataBaseIT {
     public void testParkingLotFull() {
         try {
             // Simuler un parking plein
-            when(parkingSpotDAO.getNextAvailableSlot(any(ParkingType.class))).thenReturn(-1);
+            when(parkingSpotDAO.getNextAvailableSlot(ParkingType.CAR)).thenReturn(-1);
 
             when(inputReaderUtil.readVehicleRegistrationNumber())
                     .thenReturn("ABCDEF")

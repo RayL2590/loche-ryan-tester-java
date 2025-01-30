@@ -53,16 +53,12 @@ class InputReaderUtilTest {
     @Test
     void readVehicleRegistrationNumber_ShouldThrowException_WhenEmptyInput() {
         provideInput("\n");
-        assertThrows(IllegalArgumentException.class, () -> {
-            inputReaderUtil.readVehicleRegistrationNumber();
-        });
+        assertThrows(IllegalArgumentException.class, () -> inputReaderUtil.readVehicleRegistrationNumber());
     }
 
     @Test
     void readVehicleRegistrationNumber_ShouldThrowException_WhenOnlySpaces() {
         provideInput("   \n");
-        assertThrows(IllegalArgumentException.class, () -> {
-            inputReaderUtil.readVehicleRegistrationNumber();
-        });
+        assertThrows(IllegalArgumentException.class, () -> inputReaderUtil.readVehicleRegistrationNumber());
     }
 }
